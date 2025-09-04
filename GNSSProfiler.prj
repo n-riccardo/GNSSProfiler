@@ -1,0 +1,70 @@
+<deployment-project plugin="plugin.apptool" plugin-version="1.0">
+  <configuration build-checksum="1144691065" file="G:\Drive condivisi\BlockModels\CMED\GeoProfiler\GNSSProfiler.prj" location="G:\Drive condivisi\BlockModels\CMED\GeoProfiler" name="GNSSProfiler" target="target.mlapps" target-name="Package App">
+    <param.appname>GNSSProfiler</param.appname>
+    <param.authnamewatermark>Riccardo Nucci</param.authnamewatermark>
+    <param.email>riccardo.nucci4unibo.it</param.email>
+    <param.company />
+    <param.icon />
+    <param.icons />
+    <param.summary />
+    <param.description />
+    <param.screenshot />
+    <param.version>1.0</param.version>
+    <param.products.name />
+    <param.products.id />
+    <param.products.version />
+    <param.platforms />
+    <param.output>G:\Drive condivisi\BlockModels\CMED\GeoProfilerApp</param.output>
+    <param.guid>b88b8b2f-f9c5-4458-ab72-24eff46b30af</param.guid>
+    <unset>
+      <param.company />
+      <param.icon />
+      <param.icons />
+      <param.summary />
+      <param.description />
+      <param.screenshot />
+      <param.version />
+      <param.products.name />
+      <param.products.id />
+      <param.products.version />
+      <param.platforms />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\GeoProfiler.mlapp</file>
+    </fileset.main>
+    <fileset.depfun>
+      <file>${PROJECT_ROOT}\Compute_tracks_mat.m</file>
+      <file>${PROJECT_ROOT}\ComputeGNSSProfile.m</file>
+      <file>${PROJECT_ROOT}\ComputeProfilesFromGrid.m</file>
+      <file>${PROJECT_ROOT}\fixfocus.m</file>
+      <file>${PROJECT_ROOT}\ProfilePlot.m</file>
+      <file>${PROJECT_ROOT}\QuiverGeoPlotError.m</file>
+      <file>${PROJECT_ROOT}\WorldCoastline.mat</file>
+    </fileset.depfun>
+    <fileset.resources />
+    <fileset.package />
+    <build-deliverables>
+      <file location="G:\Drive condivisi\BlockModels\CMED" name="GeoProfilerApp" optional="false">G:\Drive condivisi\BlockModels\CMED\GeoProfilerApp</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\R2024b</root>
+      <toolboxes />
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
