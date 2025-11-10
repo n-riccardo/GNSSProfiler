@@ -24,8 +24,10 @@ Tag=p.Results.Tag;
 
 if(Tag=="")
     errorbar(ax,distances, velocity_data, sigma_data,p.Results.Marker,'MarkerSize',10)
+    axis(ax, 'auto');
 else
     errorbar(ax,distances, velocity_data, sigma_data,p.Results.Marker,'MarkerSize',10,"Tag",Tag)
+    axis(ax, 'auto');
 end
 
 end

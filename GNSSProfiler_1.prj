@@ -1,36 +1,36 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="1144691065" file="G:\Drive condivisi\BlockModels\CMED\GeoProfiler\GNSSProfiler.prj" location="G:\Drive condivisi\BlockModels\CMED\GeoProfiler" name="GNSSProfiler" target="target.mlapps" target-name="Package App">
-    <param.appname>GNSSProfiler</param.appname>
+  <configuration build-checksum="3878887179" file="C:\Users\rikin\Documents\OneDrive_unibo\OneDrive - Alma Mater Studiorum Università di Bologna\MatlabCodes\GNSSProfiler\GNSSProfiler_1.prj" location="C:\Users\rikin\Documents\OneDrive_unibo\OneDrive - Alma Mater Studiorum Università di Bologna\MatlabCodes\GNSSProfiler" name="GNSSProfiler_1" target="target.mlapps" target-name="Package App">
+    <param.appname>GNSSProfiler_1</param.appname>
     <param.authnamewatermark>Riccardo Nucci</param.authnamewatermark>
-    <param.email>riccardo.nucci4unibo.it</param.email>
+    <param.email>riccardo.nucci4@unibo.it</param.email>
     <param.company />
     <param.icon />
     <param.icons />
-    <param.summary />
+    <param.summary>A simple tool for plotting GNSS velocity spatial profiles. It also supports continuous velocity fields in NetCDF format.</param.summary>
     <param.description />
-    <param.screenshot />
+    <param.screenshot>C:\Users\rikin\AppData\Local\Temp\tp9f68b7ac_1174_4306_9d11_720089f5ed01.png</param.screenshot>
     <param.version>1.0</param.version>
     <param.products.name />
     <param.products.id />
     <param.products.version />
     <param.platforms />
-    <param.output>G:\Drive condivisi\BlockModels\CMED\GeoProfilerApp</param.output>
-    <param.guid>b88b8b2f-f9c5-4458-ab72-24eff46b30af</param.guid>
+    <param.output>${PROJECT_ROOT}</param.output>
+    <param.guid>37572aa9-1561-499b-a29b-76129a12e409</param.guid>
     <unset>
+      <param.email />
       <param.company />
       <param.icon />
       <param.icons />
-      <param.summary />
       <param.description />
-      <param.screenshot />
       <param.version />
       <param.products.name />
       <param.products.id />
       <param.products.version />
       <param.platforms />
+      <param.output />
     </unset>
     <fileset.main>
-      <file>${PROJECT_ROOT}\GeoProfiler.mlapp</file>
+      <file>${PROJECT_ROOT}\GNSSProfilerApp.mlapp</file>
     </fileset.main>
     <fileset.depfun>
       <file>${PROJECT_ROOT}\Compute_tracks_mat.m</file>
@@ -44,7 +44,7 @@
     <fileset.resources />
     <fileset.package />
     <build-deliverables>
-      <file location="G:\Drive condivisi\BlockModels\CMED" name="GeoProfilerApp" optional="false">G:\Drive condivisi\BlockModels\CMED\GeoProfilerApp</file>
+      <file location="C:\Users\rikin\Documents\OneDrive_unibo\OneDrive - Alma Mater Studiorum Università di Bologna\MatlabCodes" name="GNSSProfiler" optional="false">C:\Users\rikin\Documents\OneDrive_unibo\OneDrive - Alma Mater Studiorum Università di Bologna\MatlabCodes\GNSSProfiler</file>
     </build-deliverables>
     <workflow />
     <matlab>
