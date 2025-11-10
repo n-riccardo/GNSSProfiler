@@ -21,4 +21,4 @@ run('GNSSProfiler.m')
 
 If you do not want to modify the code, you can try the app by downloading only the ``.mlappinstall`` file (then double-click it to install). You will find GNSSProfiler in the Apps tab in MATLAB.
 
-You can also create a new ``.mlappinstall`` file from the ``.mlapp``file. Open GeoProfiler.mlapp with App Designer. Go to **Share-> Package App** to create a ``.mlappinstall`` file.
+You can also create a new ``.mlappinstall`` file from the ``.mlapp``file. Open GNSSProfilerApp.mlapp with App Designer. Go to **Share-> Package App** to create a ``.mlappinstall`` file.
