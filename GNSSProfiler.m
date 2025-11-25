@@ -6,17 +6,35 @@ classdef GNSSProfiler < matlab.apps.AppBase
         FileMenu                      matlab.ui.container.Menu
         FaultsMenu                    matlab.ui.container.Menu
         LoadMenu                      matlab.ui.container.Menu
-        ClearMenu                     matlab.ui.container.Menu
         ColorMenu                     matlab.ui.container.Menu
         VelocityfieldsMenu            matlab.ui.container.Menu
-        LoadNetCDFMenu                matlab.ui.container.Menu
-        ClearScalarFieldsMenu         matlab.ui.container.Menu
-        LoadGNSSveloMenu              matlab.ui.container.Menu
-        ClearGNSSveloMenu             matlab.ui.container.Menu
+        LoadMenu_2                    matlab.ui.container.Menu
+        GNSSMenu                      matlab.ui.container.Menu
+        NetCDFMenu                    matlab.ui.container.Menu
+        ColorMenu_2                   matlab.ui.container.Menu
+        ColorGNSS                     matlab.ui.container.Menu
+        ColorScalarSelected           matlab.ui.container.Menu
+        ClearMenu_2                   matlab.ui.container.Menu
+        SelectedNetCDFMenu            matlab.ui.container.Menu
+        SelectedGNSSMenu              matlab.ui.container.Menu
         OptionsMenu                   matlab.ui.container.Menu
+        BasemapsneedInternetconnMenu  matlab.ui.container.Menu
+        BasemapMenu                   matlab.ui.container.Menu
+        TopographicMenu               matlab.ui.container.Menu
+        ColorterrainMenu              matlab.ui.container.Menu
+        NoneMenu                      matlab.ui.container.Menu
         InfoMenu                      matlab.ui.container.Menu
         ContactsMenu                  matlab.ui.container.Menu
         RiccardoNucciMenu             matlab.ui.container.Menu
+        ProfileinfoPanel              matlab.ui.container.Panel
+        LabelAzimuth                  matlab.ui.control.Label
+        LabelNVelo                    matlab.ui.control.Label
+        LabelLength                   matlab.ui.control.Label
+        LabelWidth                    matlab.ui.control.Label
+        AzimuthdegLabel               matlab.ui.control.Label
+        NumberofvelocitiesLabel       matlab.ui.control.Label
+        LengthkmLabel                 matlab.ui.control.Label
+        WidthkmLabel                  matlab.ui.control.Label
         SetButton                     matlab.ui.control.Button
         MaxYProfile                   matlab.ui.control.NumericEditField
         MinYProfile                   matlab.ui.control.NumericEditField
@@ -36,17 +54,6 @@ classdef GNSSProfiler < matlab.apps.AppBase
         MouseLonEditFieldLabel        matlab.ui.control.Label
         MapinMercatorProjectionPanel  matlab.ui.container.Panel
         StatusbarLabel                matlab.ui.control.Label
-        ProfileinfoPanel              matlab.ui.container.Panel
-        VelocitypathLabel             matlab.ui.control.Label
-        EditField                     matlab.ui.control.EditField
-        EditFieldAzimuth              matlab.ui.control.NumericEditField
-        AzimuthdegLabel               matlab.ui.control.Label
-        EditFieldNVelInfo             matlab.ui.control.NumericEditField
-        EditFieldLengthInfo           matlab.ui.control.NumericEditField
-        EditFieldWidthInfo            matlab.ui.control.NumericEditField
-        NumberofvelocitiesLabel       matlab.ui.control.Label
-        LengthkmLabel                 matlab.ui.control.Label
-        WidthkmLabel                  matlab.ui.control.Label
         ProfileEditPanel              matlab.ui.container.Panel
         DropDown                      matlab.ui.control.DropDown
         PickpointsSwitch_2            matlab.ui.control.Switch
@@ -67,53 +74,57 @@ classdef GNSSProfiler < matlab.apps.AppBase
         EditField_2                   matlab.ui.control.EditField
         ProfilePanel                  matlab.ui.container.Panel
         UIAxes                        matlab.ui.control.UIAxes
+        LoadedDataPanel               matlab.ui.container.Panel
+        FaultList                     matlab.ui.control.Table
+        ScalarVeloList                matlab.ui.control.Table
+        GNSSVeloList                  matlab.ui.control.Table
     end
 
 
     properties (Access = private)
 
-        quickPlotName = "Quick GNSS Profile Plotter, v. 1.0.0"
+        GNSSProfilerName = "Quick GNSS Profile Plotter, v. 1.0.0"
 
+        % Mouse options:
         clickCount (1,1) double {mustBeInteger,mustBeLessThanOrEqual(clickCount,2),mustBeGreaterThanOrEqual(clickCount,0)} = 0;
+
+        % Profile options:
         linePoints (2,2) double = nan(2,2);
-        profileWidth (1,1) double {mustBePositive} = 50;      % Width of the profile
-
-        % Values relative to profile already plotted and not modified until
-        % the next plot:
-        linePointsInPlot (2,2) double = nan(2,2);
-        profileWidthInPlot (1,1) double {mustBePositive} = 1;      % Width of the profile
-        profileComponent (1,1) double {mustBeInteger,mustBePositive, mustBeLessThanOrEqual(profileComponent,3)} = 1; % 1= velo parallel, 2 = velo orth, 3 = vertical
-
-        velocityTable table  = table([])     % Table of velocity data, format is lon,lat,ve,vn,vu,se,sn,su,name
-        % Fill vu with NaN if it is not used
-
-        % Part related to geoplot:
-        MapAxes matlab.graphics.axis.GeographicAxes  % Axes for geoplotting
-        Range (4,1) double = [30,45,-10,40]
-
-        scale (1,1) double = 0.003 % Scale for quiver plot
-
-        legendValue (1,1) double =3
-
-        geopoly
-
-        faultsLonLat (:,2) double = []
-        indexLastFaults (1,1) double {mustBeInteger} = 0
-
-        % Scalar fields
-        LonScalarF (:,1) double = [];
-        LatScalarF (:,1) double = [];
-        GridVe (:,:) double = [];
-        GridVn (:,:) double = [];
-        GridVu (:,:) double = [];
-
-        PercentileDown=5;
-        PercentileUp=95;
-
+        profileWidth (1,1) double {mustBePositive} = 50; 
+        profileComponent (1,1) double {mustBeInteger, mustBePositive, mustBeLessThanOrEqual(profileComponent,3)} = 1; % 1= velo parallel, 2 = velo orth, 3 = vertical
         SamplingOnTrackGrid=1000;
         NSamplingGrid=100;
 
+        % Values relative to profile already plotted and not modified until the next plot:
+        linePointsInPlot (2,2) double = nan(2,2);
+        profileWidthInPlot (1,1) double {mustBePositive} = 1;  
+
+        % Geoplot:
+        MapAxes matlab.graphics.axis.GeographicAxes  % Axes for geoplotting
+        Range (4,1) double = [30,45,-10,40]
+        scale (1,1) double = 0.003 % Scale for quiver plot
+        legendValue (1,1) double = 3
+        geopoly
+
+        % Cartesian Plot:
         Ylimits (2,1) double = [0,1];
+
+        % GNSS velocity data:
+        GNSSVelocities GNSSVeloManager = GNSSVeloManager()
+        ResultTables
+
+        % Scalar velocity data:
+        ScalarVelocities ScalarVeloManager = ScalarVeloManager()
+        ResultGrids
+
+        % Faults:
+        GFaultsDats GFaultsManager = GFaultsManager()
+
+        trackInfo
+
+        % Options for scalar velocity fields:
+        PercentileDown=5;
+        PercentileUp=95;
 
     end
 
@@ -139,153 +150,113 @@ classdef GNSSProfiler < matlab.apps.AppBase
     methods (Access = private)
 
         %%%%%%%%%%%%%%%%%%%%%%
-        %                    %
-        %   Read Functions   %
-        %                    %
-        %%%%%%%%%%%%%%%%%%%%%%
-
-        function ReadVelocityFile(app,fullFileName)
-            % Check the extension:
-            if(endsWith(fullFileName, '.sta.data'))
-                veloStaData=readtable(fullFileName,"FileType","text","NumHeaderLines",1);
-                Lon=veloStaData.Var1;
-                Lat=veloStaData.Var2;
-                Ve=veloStaData.Var3;
-                Vn=veloStaData.Var4;
-                Vu=nan(length(Lon),1);
-                Se=veloStaData.Var5;
-                Sn=veloStaData.Var6;
-                Su=nan(length(Lon),1);
-                Name=string(veloStaData.Var10);
-                velocity=table(Lon,Lat,Ve,Vn,Vu,Se,Sn,Su,Name);
-                velocity.Properties.VariableNames={'lon','lat','ve','vn','vu','se','sn','su','name'};
-                app.velocityTable=velocity;
-            else
-                velocity=readtable(fullFileName,"FileType","text","NumHeaderLines",1);
-                % Modify the variable names to be in a std form used by the
-                % program:
-                velocity.Properties.VariableNames={'lon','lat','ve','vn','vu','se','sn','su','name'};
-                velocity.name=string(velocity.name);
-                app.velocityTable=velocity;
-            end
-        end
-
-        function ReadFaultsFile(app,fullFileName)
-
-            faults=readtable(fullFileName,"FileType","text","NumHeaderLines",1);
-            % append faults
-            faultsLonLatTemp=table2array(faults);
-            OldfaultsLonLat=app.faultsLonLat; 
-            app.faultsLonLat=[app.faultsLonLat;faultsLonLatTemp];
-            app.indexLastFaults=length(OldfaultsLonLat); % It is not executed in case of error in the previous line
-
-        end
-
-        function ReadNetCDFFile(app,fullFileName)
-            
-            app.LonScalarF=ncread(fullFileName,'lon');
-            app.LatScalarF=ncread(fullFileName,'lat');
-
-            app.GridVe=ncread(fullFileName,'Ve');
-            app.GridVn=ncread(fullFileName,'Vn');
-
-            info = ncinfo(fullFileName);
-            existsVertical = any(strcmp({info.Variables.Name}, 'Vu'));
-
-            if(existsVertical)
-                app.GridVu=ncread(fullFileName,'Vu');
-            else
-                app.GridVu=app.GridVe .* NaN;
-            end
-
-        end
-
-        %%%%%%%%%%%%%%%%%%%%%%
-        %                    %
-        %   Plot Functions   %
-        %                    %
+        %      Plotters      %
         %%%%%%%%%%%%%%%%%%%%%%
 
         function PlotVelocity(app)
-            if(~isempty(app.velocityTable))
-                lon=app.velocityTable.lon;
-                lat=app.velocityTable.lat;
-                ve=app.velocityTable.ve;
-                vn=app.velocityTable.vn;
-                se=app.velocityTable.se;
-                sn=app.velocityTable.sn;
-                QuiverGeoPlotError(lon, lat, ve, vn, se, sn, zeros(1,length(lon)), app.scale,'Axes',app.MapAxes,'Tag',"VeloField")
-                PlotLegend(app)
+            delete(findall(app.MapAxes, 'Tag', 'GNSSVeloField'))
+            delete(findall(app.MapAxes, 'Tag', 'ScalarSquare'))
+            delete(findall(app.MapAxes, 'Tag', 'Faults'))
+            if(~isempty(app.GNSSVelocities))
+                for i=1:numel(app.GNSSVelocities.Fields)
+                    if(app.GNSSVelocities.Fields(i).Selected)
+                        velocityTable=app.GNSSVelocities.Fields(i).Data;
+                        lon=velocityTable.lon;
+                        lat=velocityTable.lat;
+                        ve=velocityTable.ve;
+                        vn=velocityTable.vn;
+                        se=velocityTable.se;
+                        sn=velocityTable.sn;
+                        QuiverGeoPlotError(lon, lat, ve, vn, se, sn, zeros(1,length(lon)),...
+                            app.scale,'Axes',app.MapAxes,'Tag',"GNSSVeloField",...
+                            'Color', char(app.GNSSVelocities.Fields(i).Colors(1)),...
+                            'ColorEllipse', char(app.GNSSVelocities.Fields(i).Colors(2)))
+                        PlotLegend(app)
+                    end
+                end
+            end
+            if(~isempty(app.ScalarVelocities))
+                for i=1:numel(app.ScalarVelocities.Fields)
+                    if(app.ScalarVelocities.Fields(i).Selected)
+                        LonMax=max(app.ScalarVelocities.Fields(i).LonScalarF,[],'all');
+                        LonMin=min(app.ScalarVelocities.Fields(i).LonScalarF,[],'all');
+                        LatMax=max(app.ScalarVelocities.Fields(i).LatScalarF,[],'all');
+                        LatMin=min(app.ScalarVelocities.Fields(i).LatScalarF,[],'all');
+                        geoplot(app.MapAxes,[LatMin,LatMin,LatMax,LatMax,LatMin],...
+                            [LonMin,LonMax,LonMax,LonMin,LonMin],'LineWidth',1,'Color', ...
+                            app.ScalarVelocities.Fields(i).Color,'Tag','ScalarSquare')
+                    end
+                end
+            end
+            if(~isempty(app.GFaultsDats))
+                for i=1:numel(app.GFaultsDats.Fields)
+                    if(app.GFaultsDats.Fields(i).Selected)
+                        geoplot(app.MapAxes,app.GFaultsDats.Fields(i).Data(:,2),...
+                            app.GFaultsDats.Fields(i).Data(:,1),'LineWidth',1,'Color',...
+                            app.GFaultsDats.Fields(i).Color,'Tag','Faults')
+                    end
+                end
             end
         end
 
+        function PlotProfile(app)
+
+            delete(findall(app.UIAxes, 'Tag', 'ProfilePlot'));
+            hold(app.UIAxes, 'on');
+            if(~isempty(app.ScalarVelocities.Fields))
+                for i=1:numel(app.ScalarVelocities.Fields)
+                    if((~isempty(app.ResultGrids{i,1})) || (~isempty(app.ResultGrids{i,2})) || (~isempty(app.ResultGrids{i,3})))
+                        myColorChar=char(app.ScalarVelocities.Fields(i).Color);
+                        myColorCharLight=lightenHex(myColorChar, 1.5);
+                        if(app.profileComponent==1)
+                            PlotProfileGrid(app.ResultGrids{i,1},app.PercentileDown,app.PercentileUp,'Axes',app.UIAxes,'Tag',"ProfilePlot", ...
+                                'Color',myColorChar,'ShadingColor',myColorCharLight)
+                        elseif(app.profileComponent==2)
+                            PlotProfileGrid(app.ResultGrids{i,2},app.PercentileDown,app.PercentileUp,'Axes',app.UIAxes,'Tag',"ProfilePlot", ...
+                                'Color',myColorChar,'ShadingColor',myColorCharLight)
+                        elseif(app.profileComponent==3)
+                            PlotProfileGrid(app.ResultGrids{i,3},app.PercentileDown,app.PercentileUp,'Axes',app.UIAxes,'Tag',"ProfilePlot", ...
+                                'Color',myColorChar,'ShadingColor',myColorCharLight)
+                        end
+                    end
+                end
+            end
+
+            if(~isempty(app.GNSSVelocities.Fields))
+                for i=1:numel(app.GNSSVelocities.Fields)
+                    if(~isempty(app.ResultTables{i}))
+                        if(app.profileComponent==1)
+                            ProfilePlot(app.ResultTables{i}.Distances_km, app.ResultTables{i}.Vpara, app.ResultTables{i}.Spara, 'Axes',app.UIAxes,'Tag',"ProfilePlot",'Color',char(app.GNSSVelocities.Fields(i).Colors(1)))
+                        elseif(app.profileComponent==2)
+                            ProfilePlot(app.ResultTables{i}.Distances_km, app.ResultTables{i}.Vorth, app.ResultTables{i}.Sorth, 'Axes',app.UIAxes,'Tag',"ProfilePlot",'Color',char(app.GNSSVelocities.Fields(i).Colors(1)))
+                        elseif(app.profileComponent==3)
+                            ProfilePlot(app.ResultTables{i}.Distances_km, app.ResultTables{i}.Vu, app.ResultTables{i}.Su, 'Axes',app.UIAxes,'Tag',"ProfilePlot",'Color',char(app.GNSSVelocities.Fields(i).Colors(1)))
+                        end
+                    end
+                end
+            end
+            hold(app.UIAxes, 'off');
+
+            app.linePointsInPlot=app.linePoints;
+            app.profileWidthInPlot=app.profileWidth;
+
+            showStatus(app,"Profile plotted!")
+        end
+
         function PlotLegend(app)
-
             delete(findall(app.MapAxes, 'Tag', 'ScaleVector'));
-
             latLim=app.MapAxes.LatitudeLimits;
             lonLim=app.MapAxes.LongitudeLimits;
-
-            %[latLim, lonLim] = geolimits(app.MapAxes);
-
-            latPos = latLim(1) + 0.1 * diff(latLim);   % un po' sopra il bordo
-            lonPos = lonLim(2) - 0.2 * diff(lonLim);   % un po' a sinistra del bordo
-
-
-            QuiverGeoPlotError(lonPos, latPos, app.legendValue, 0, 0, 0, 0, app.scale,'Axes',app.MapAxes,'Color','green','Tag',"ScaleVector")
-
+            latPos = latLim(1) + 0.1 * diff(latLim);   % slightly up
+            lonPos = lonLim(2) - 0.2 * diff(lonLim);   % slighty left
+            QuiverGeoPlotError(lonPos, latPos, app.legendValue, 0, 0, 0, 0,...
+                app.scale,'Axes',app.MapAxes,'Color','green','Tag',"ScaleVector")
             text(app.MapAxes,latPos, lonPos,string(app.legendValue)+ "mm/yr", 'Tag', 'ScaleVector', ...
                 'HorizontalAlignment', 'right', 'FontSize', 10, 'Color', 'k');
         end
 
-        function PlotFaults(app,color)
-
-            geoplot(app.MapAxes,app.faultsLonLat((app.indexLastFaults+1):end,2),app.faultsLonLat((app.indexLastFaults+1):end,1),'LineWidth',1,'Color',color,'Tag','Faults')
-
-        end
-
-        function PlotScalarSquare(app)
-            
-            LonMax=max(app.LonScalarF,[],'all');
-            LonMin=min(app.LonScalarF,[],'all');
-            LatMax=max(app.LatScalarF,[],'all');
-            LatMin=min(app.LatScalarF,[],'all');
-
-            geoplot(app.MapAxes,[LatMin,LatMin,LatMax,LatMax,LatMin],[LonMin,LonMax,LonMax,LonMin,LonMin],'LineWidth',0.5,'Color','blue','Tag','ScalarSquare')
-
-        end
-
-        function PlotProfileGrid(app,GridProfile)
-
-            DownValues=zeros(length(GridProfile),1);
-            UpValues=zeros(length(GridProfile),1);
-            MedianValues=zeros(length(GridProfile),1);
-            DistancesValues=zeros(length(GridProfile),1);
-
-            for i=1:length(GridProfile)
-                DistancesValues(i)=GridProfile(i).Distance;
-                values=GridProfile(i).Values;
-                MedianValues(i) = prctile(values, 50);
-                DownValues(i) = prctile(values, app.PercentileDown);
-                UpValues(i) = prctile(values, app.PercentileUp);
-            end
-
-            BndValues=[DownValues;flip(UpValues);DownValues(1)];
-            DistBndValues=[DistancesValues;flip(DistancesValues);DistancesValues(1)];
-
-            hold(app.UIAxes, 'on');
-            patch(app.UIAxes, DistBndValues, BndValues, 'blue','EdgeColor','blue', 'Tag', 'ProfilePlot','FaceAlpha', 0.3)
-            plot(app.UIAxes,DistancesValues,MedianValues, 'Color','black','Tag',"ProfilePlot")
-            hold(app.UIAxes, 'off');
-            axis(app.UIAxes, 'auto');
-
-        end
-
-
         %%%%%%%%%%%%%%%%%%%%%%
-        %                    %
         %  Cursor Functions  %
-        %                    %
         %%%%%%%%%%%%%%%%%%%%%%
 
         function [lonPos,latPos]=UpdateGeoCursor(app)
@@ -345,9 +316,6 @@ classdef GNSSProfiler < matlab.apps.AppBase
                 lonPos=NaN;
                 latPos=NaN;
             end
-
-
-
         end
 
         function GetGeoCursor(app)
@@ -420,10 +388,19 @@ classdef GNSSProfiler < matlab.apps.AppBase
 
 
         function displayTrackInfo(app,trackInfo)
-            app.EditFieldWidthInfo.Value=trackInfo.width;
-            app.EditFieldLengthInfo.Value=trackInfo.total_distance;
-            app.EditFieldNVelInfo.Value=trackInfo.nVels;
-            app.EditFieldAzimuth.Value=trackInfo.azimuth;
+
+            app.LabelWidth.Text=string(trackInfo.width);
+            app.LabelLength.Text=string(trackInfo.total_distance);
+            nVelsString="";
+            for i=1:numel(app.GNSSVelocities.Fields)
+                if(i==numel(app.GNSSVelocities.Fields))
+                    nVelsString=nVelsString+string(trackInfo.nVels(i));
+                else
+                    nVelsString=nVelsString+string(trackInfo.nVels(i))+", ";
+                end
+            end
+            app.LabelNVelo.Text=nVelsString;
+            app.LabelAzimuth.Text=string(trackInfo.azimuth);
 
         end
 
@@ -433,14 +410,48 @@ classdef GNSSProfiler < matlab.apps.AppBase
             reference_earth.LengthUnit = 'kilometer';
             start_end_points=[app.linePoints(1,2),app.linePoints(1,1),app.linePoints(2,2),app.linePoints(2,1)];
 
-            [int_lat, int_lon] = rhxrh(lat, lon, app.EditFieldAzimuth.Value, start_end_points(2), start_end_points(1), app.EditFieldAzimuth.Value - 90);
+            [int_lat, int_lon] = rhxrh(lat, lon, app.trackInfo.azimuth, start_end_points(2), start_end_points(1), app.trackInfo.azimuth - 90);
 
             % Compute distance from station to profile center
             distance_ = distance('rh', [int_lat, int_lon], [lat, lon], reference_earth);
 
         end
 
+        function UpdateGNSSVeloList(app) % Update the whole list on the basis of the GNSSVelocities object (names can be changed if equals)
+            newT = table([],logical([]));
+            newT.Properties.VariableNames=app.GNSSVeloList.ColumnName;
+            for i=1:numel(app.GNSSVelocities.Fields)
+                newRow = table(app.GNSSVelocities.Fields(i).Name,logical(app.GNSSVelocities.Fields(i).Selected),...
+                    'VariableNames',app.GNSSVeloList.ColumnName);
+                newT = [newT;newRow];
+            end
+            disp(newT)
+            app.GNSSVeloList.Data = newT;
+        end
 
+        function UpdateScalarVeloList(app)
+            newT = table([],logical([]));
+            newT.Properties.VariableNames=app.ScalarVeloList.ColumnName;
+            for i=1:numel(app.ScalarVelocities.Fields)
+                newRow = table(app.ScalarVelocities.Fields(i).Name,logical(app.ScalarVelocities.Fields(i).Selected),...
+                    'VariableNames',app.ScalarVeloList.ColumnName);
+                newT = [newT;newRow];
+            end
+            disp(newT)
+            app.ScalarVeloList.Data = newT;
+        end
+
+        function UpdateFaultList(app)
+            newT = table([],logical([]));
+            newT.Properties.VariableNames=app.FaultList.ColumnName;
+            for i=1:numel(app.GFaultsDats.Fields)
+                newRow = table(app.GFaultsDats.Fields(i).Name,logical(app.GFaultsDats.Fields(i).Selected),...
+                    'VariableNames',app.FaultList.ColumnName);
+                newT = [newT;newRow];
+            end
+            disp(newT)
+            app.FaultList.Data = newT;
+        end
     end
 
 
@@ -449,7 +460,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
 
         % Code that executes after component creation
         function startupFcn(app)
-            showStatus(app,"Welcome to "+app.quickPlotName)
+            showStatus(app,"Welcome to "+app.GNSSProfilerName)
 
             load WorldCoastline.mat lon lat
 
@@ -502,99 +513,95 @@ classdef GNSSProfiler < matlab.apps.AppBase
         % Button pushed function: PlotButton
         function PlotButtonPushed(app, event)
 
-            isthereNaNValue=false;
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %      Computing profiles      %
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            isthereNaNValueInPoints=false;
             for i=1:2
                 for j=1:2
-                    isthereNaNValue=isthereNaNValue | isnan(app.linePoints(i,j));
+                    isthereNaNValueInPoints=isthereNaNValueInPoints | isnan(app.linePoints(i,j));
                 end
             end
-            if((~isthereNaNValue) && ( (~isempty(app.velocityTable)) || (~isempty(app.LonScalarF)) ))
+
+            if((~isthereNaNValueInPoints) && ( (~isempty(app.GNSSVelocities.Fields)) || (~isempty(app.ScalarVelocities.Fields)) ))
                 delete(findall(app.MapAxes, 'Tag', 'ProfilePolygon'));
                 showStatus(app,"Plotting profile...")
+
                 width=app.profileWidth;
                 start_end_points=[app.linePoints(1,2),app.linePoints(1,1),app.linePoints(2,2),app.linePoints(2,1)];
-                %    - Long (Longitude)
-                %    - Lat (Latitude)
-                %    - E_Rate (Velocity in East direction)
-                %    - N_Rate (Velocity in North direction)
-                %    - U_Rate (Velocity in Up direction)
-                %    - x__E (Uncertainty in East direction)
-                %    - x__N (Uncertainty in North direction)
-                %    - x__U (Uncertainty in Up direction)
-                if(~isempty(app.velocityTable))
-                    veloTableComp=app.velocityTable;
-                    veloTableComp=veloTableComp(:,1:8);
-                    veloTableComp.Properties.VariableNames= {'Long', 'Lat', 'E_Rate', 'N_Rate', 'U_Rate', 'x__E', 'x__N', 'x__U'};
-                    [ResultTable, trackInfo, ~, app.geopoly]=ComputeGNSSProfile(veloTableComp,width/2,start_end_points);
-                    trackInfo.width=width;
-                    trackInfo.nVels=length(ResultTable.Distances_km);
-                    displayTrackInfo(app,trackInfo)
-                end
-                if(~isempty(app.LonScalarF))
-                    trackInfo = Compute_tracks_mat(width/2, start_end_points, 100, NaN, "");
-                    azimuth_ = trackInfo.azimuth;
-                    total_distance=trackInfo.total_distance;
-
-                    GridVParallel = app.GridVe * sind(azimuth_) + app.GridVn * cosd(azimuth_);
-                    GridVOrthogonal = app.GridVe * cosd(azimuth_) - app.GridVn * sind(azimuth_);
-                    GridVUp = app.GridVu;
-
-                    grid_dataParallel.Long=app.LonScalarF;
-                    grid_dataParallel.Lat=app.LatScalarF;
-                    grid_dataParallel.Val=GridVParallel;
-                    grid_dataOrthogonal.Long=app.LonScalarF;
-                    grid_dataOrthogonal.Lat=app.LatScalarF;
-                    grid_dataOrthogonal.Val=GridVOrthogonal;
-                    grid_dataUp.Long=app.LonScalarF;
-                    grid_dataUp.Lat=app.LatScalarF;
-                    grid_dataUp.Val=GridVUp;
-
-                    [GridProfileParallel, ~, ~, ~] = ComputeProfilesFromGrid(grid_dataParallel, width/2, start_end_points,'SamplingDistOnTrack',total_distance/app.SamplingOnTrackGrid,'NSamplingCrossTrack',app.NSamplingGrid);
-                    [GridProfileOrthogonal, ~, ~, app.geopoly] = ComputeProfilesFromGrid(grid_dataOrthogonal, width/2, start_end_points,'SamplingDistOnTrack',total_distance/app.SamplingOnTrackGrid,'NSamplingCrossTrack',app.NSamplingGrid);
-                    [GridProfileUp, ~, ~, app.geopoly] = ComputeProfilesFromGrid(grid_dataUp, width/2, start_end_points,'SamplingDistOnTrack',total_distance/app.SamplingOnTrackGrid,'NSamplingCrossTrack',app.NSamplingGrid);
+                trackInfo_ = Compute_tracks_mat(width/2, start_end_points, 100, NaN, "");
+                azimuth_ = trackInfo_.azimuth;
+                total_distance=trackInfo_.total_distance;
+                trackInfo_.width=width;
+                trackInfo_.nVels=zeros(1,numel(app.GNSSVelocities.Fields));
+                
+                %    - Long (Longitude) - Lat (Latitude) 
+                %    - E_Rate (Velocity in East direction)  - N_Rate (Velocity in North direction)  - U_Rate (Velocity in Up direction) 
+                %    - x__E (Uncertainty in East direction) - x__N (Uncertainty in North direction) - x__U (Uncertainty in Up direction)
+                ResultTables_ = cell(numel(app.GNSSVelocities.Fields),1);
+                if(~isempty(app.GNSSVelocities.Fields))
+                    for i=1:numel(app.GNSSVelocities.Fields)
+                        if(app.GNSSVelocities.Fields(i).Selected)
+                            veloTableComp=app.GNSSVelocities.Fields(i).Data;
+                            veloTableComp=veloTableComp(:,1:8);
+                            veloTableComp.Properties.VariableNames= {'Long', 'Lat', 'E_Rate', 'N_Rate', 'U_Rate', 'x__E', 'x__N', 'x__U'};
+                            [ResultTable, ~, ~, app.geopoly]=ComputeGNSSProfile(veloTableComp,width/2,start_end_points);
+                            
+                            trackInfo_.nVels(i)=numel(ResultTable.Distances_km);
+                            ResultTables_{i}=ResultTable;
+                        else
+                            trackInfo_.nVels(i)=0;
+                            ResultTables_{i}=table();
+                        end
+                    end
                 end
 
+                app.ResultTables=ResultTables_;
+
+                app.trackInfo=trackInfo_;
+                displayTrackInfo(app,trackInfo_)
+
+                ResultGrids_ = cell(numel(app.ScalarVelocities.Fields),3);  
+
+                if(~isempty(app.ScalarVelocities.Fields))
+                    for i=1:numel(app.ScalarVelocities.Fields)
+                        if(app.ScalarVelocities.Fields(i).Selected)
+
+                            GridVParallel = app.ScalarVelocities.Fields(i).GridVe * sind(azimuth_) + app.ScalarVelocities.Fields(i).GridVn * cosd(azimuth_);
+                            GridVOrthogonal = app.ScalarVelocities.Fields(i).GridVe * cosd(azimuth_) - app.ScalarVelocities.Fields(i).GridVn * sind(azimuth_);
+                            GridVUp = app.ScalarVelocities.Fields(i).GridVu;
+
+                            grid_dataParallel.Long=app.ScalarVelocities.Fields(i).LonScalarF;
+                            grid_dataParallel.Lat=app.ScalarVelocities.Fields(i).LatScalarF;
+                            grid_dataParallel.Val=GridVParallel;
+                            grid_dataOrthogonal.Long=app.ScalarVelocities.Fields(i).LonScalarF;
+                            grid_dataOrthogonal.Lat=app.ScalarVelocities.Fields(i).LatScalarF;
+                            grid_dataOrthogonal.Val=GridVOrthogonal;
+                            grid_dataUp.Long=app.ScalarVelocities.Fields(i).LonScalarF;
+                            grid_dataUp.Lat=app.ScalarVelocities.Fields(i).LatScalarF;
+                            grid_dataUp.Val=GridVUp;
+
+                            [GridProfileParallel, ~, ~, ~] = ComputeProfilesFromGrid(grid_dataParallel, width/2, start_end_points,'SamplingDistOnTrack',total_distance/app.SamplingOnTrackGrid,'NSamplingCrossTrack',app.NSamplingGrid);
+                            [GridProfileOrthogonal, ~, ~, app.geopoly] = ComputeProfilesFromGrid(grid_dataOrthogonal, width/2, start_end_points,'SamplingDistOnTrack',total_distance/app.SamplingOnTrackGrid,'NSamplingCrossTrack',app.NSamplingGrid);
+                            [GridProfileUp, ~, ~, app.geopoly] = ComputeProfilesFromGrid(grid_dataUp, width/2, start_end_points,'SamplingDistOnTrack',total_distance/app.SamplingOnTrackGrid,'NSamplingCrossTrack',app.NSamplingGrid);
+
+                            ResultGrids_{i,1}=GridProfileParallel;
+                            ResultGrids_{i,2}=GridProfileOrthogonal;
+                            ResultGrids_{i,3}=GridProfileUp;
+                        else
+                            ResultGrids_{i,1}=[];
+                            ResultGrids_{i,2}=[];
+                            ResultGrids_{i,3}=[];
+                        end
+                    end
+                end
+
+                app.ResultGrids=ResultGrids_;
                 geoplot(app.MapAxes,app.geopoly,'Tag','ProfilePolygon')
 
-                delete(findall(app.UIAxes, 'Tag', 'ProfilePlot'));
+                PlotProfile(app)
 
-                if(~isempty(app.LonScalarF))
-                    
-                    if(app.profileComponent==1)
-
-                        PlotProfileGrid(app,GridProfileParallel)
-
-                    elseif(app.profileComponent==2)
-
-                        PlotProfileGrid(app,GridProfileOrthogonal)
-
-                    elseif(app.profileComponent==3)
-
-                        PlotProfileGrid(app,GridProfileUp)
-
-                    end
-                end
-
-                if(~isempty(app.velocityTable))
-                    hold(app.UIAxes, 'on');   % enable hold on that specific axes
-                    if(app.profileComponent==1)
-                        ProfilePlot(ResultTable.Distances_km, ResultTable.Vpara, ResultTable.Spara, 'Axes',app.UIAxes,'Tag',"ProfilePlot")
-                    elseif(app.profileComponent==2)
-                        ProfilePlot(ResultTable.Distances_km, ResultTable.Vorth, ResultTable.Sorth, 'Axes',app.UIAxes,'Tag',"ProfilePlot")
-                    elseif(app.profileComponent==3)
-                        ProfilePlot(ResultTable.Distances_km, ResultTable.Vu, ResultTable.Su, 'Axes',app.UIAxes,'Tag',"ProfilePlot")
-                    end
-                    hold(app.UIAxes, 'off');   % enable hold on that specific axes
-                end
-
-
-                %plot(app.UIAxes,ResultTable.Distances_km,ResultTable.Vpara,'*')
-
-                %Updates info on plotted profile
-                app.linePointsInPlot=app.linePoints;
-                app.profileWidthInPlot=app.profileWidth;
-                
-                showStatus(app,"Profile plotted!")
             else
                 showStatus(app,"Error while plotting your profile: maybe you didn't pick any points? Or maybe you didn't load a legit velocity dataset?",true)
             end
@@ -604,7 +611,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
         % Button pushed function: ScalePlus
         function ScalePlusButtonPushed(app, event)
             app.scale=app.scale*1.1;
-            delete(findall(app.MapAxes, 'Tag', 'VeloField'))
+            %delete(findall(app.MapAxes, 'Tag', 'GNSSVeloField'))
             PlotVelocity(app)
             showStatus(app,"Velocity scale increased by 10%")
         end
@@ -612,7 +619,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
         % Button pushed function: ScaleMinus
         function ScaleMinusButtonPushed(app, event)
             app.scale=app.scale*0.9;
-            delete(findall(app.MapAxes, 'Tag', 'VeloField'))
+            %delete(findall(app.MapAxes, 'Tag', 'GNSSVeloField'))
             PlotVelocity(app)
             showStatus(app,"Velocity scale decreased by 10%")
         end
@@ -643,17 +650,13 @@ classdef GNSSProfiler < matlab.apps.AppBase
                 fullFileName = fullfile(location, file);
                 showStatus(app,"User selected "+ string(fullFileName))
                 try
-                    ReadFaultsFile(app, fullFileName);
-
-                    %Change name at the previous plot (if exist)
-                    oldFaults = findall(app.MapAxes, 'Tag', 'Faults');  % Cerca nell'attuale figura
-                    if(~isempty(oldFaults))
-                        set(oldFaults, 'Tag', 'oldFaults');
-                    end
-                    PlotFaults(app, 'red')
+                    fullFileName=string(fullFileName);
+                    [Name,FaultsLonLat]= ReadFaultsFile(fullFileName);
+                    GFaultsDat=GFaults(Name,FaultsLonLat,[],fullFileName,true);
+                    app.GFaultsDats.addField(GFaultsDat);
+                    UpdateFaultList(app)
+                    PlotVelocity(app)
                     showStatus(app,"Faults successfully loaded")
-                    app.ClearMenu.Enable = 'on';
-                    app.ColorMenu.Enable = 'on';
                 catch ME
                     % Mostra un messaggio di errore nell’interfaccia
                     showStatus(app, "Error while trying to load and plot faults (maybe incorrect format?). Details: " + ME.message, true);
@@ -748,7 +751,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
 
         end
 
-        % Menu selected function: ClearMenu
+        % Callback function: not associated with a component
         function ClearMenuSelected(app, event)
             h = findall(app.MapAxes, 'Tag', 'Faults');
             if ~isempty(h)
@@ -766,12 +769,15 @@ classdef GNSSProfiler < matlab.apps.AppBase
         function ColorMenuSelected(app, event)
             ff = fixfocus;
             newColor = uisetcolor;
+            newHex = string(sprintf('#%02X%02X%02X', round(newColor(1)*255), round(newColor(2)*255), round(newColor(3)*255)));
             delete(ff);
-
+            disp(newHex)
             if length(newColor) == 3
-                h = findall(app.MapAxes, 'Tag', 'Faults');
-                if ~isempty(h)
-                    set(h, 'Color', newColor);
+                for i=1:numel(app.GFaultsDats.Fields)
+                    if(app.GFaultsDats.Fields(i).Selected)
+                        app.GFaultsDats.Fields(i).Color=newHex;
+                        PlotVelocity(app)
+                    end
                 end
             end
         end
@@ -876,7 +882,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
             end
         end
 
-        % Menu selected function: LoadNetCDFMenu
+        % Menu selected function: NetCDFMenu
         function LoadNetCDFMenuSelected(app, event)
             showStatus(app, "Please, select a NetCDF file")
 
@@ -889,19 +895,21 @@ classdef GNSSProfiler < matlab.apps.AppBase
             else
                 fullFileName = fullfile(location, file);
                 showStatus(app,"User selected "+ string(fullFileName))
-                try
-                    ReadNetCDFFile(app, fullFileName);
-                    PlotScalarSquare(app)
+                %try
+                    [Name,lonScalarF,latScalarF,gridVe,gridVn,gridVu]=ReadNetCDFFile(fullFileName);
+                    ScalarVelocity=ScalarVelo(Name, lonScalarF, latScalarF, gridVe, gridVn, ...
+                                gridVu, string(fullFileName));
+                    app.ScalarVelocities.addField(ScalarVelocity)
+                    UpdateScalarVeloList(app)
+                    PlotVelocity(app)
                     showStatus(app,"Scalar Field successfully loaded")
-                    app.ClearScalarFieldsMenu.Enable = 'on';
-                catch ME
-                    % Mostra un messaggio di errore nell’interfaccia
-                    showStatus(app, "Error while trying to load and plot scalar field (maybe incorrect format?). Details: " + ME.message, true);
-                end
+                %catch ME
+                    %showStatus(app, "Error while trying to load and plot scalar field (maybe incorrect format?). Details: " + ME.message, true);
+                %end
             end
         end
 
-        % Menu selected function: ClearScalarFieldsMenu
+        % Callback function
         function ClearScalarFieldsMenuSelected(app, event)
             h = findall(app.MapAxes, 'Tag', 'ScalarSquare');
             if ~isempty(h)
@@ -935,28 +943,30 @@ classdef GNSSProfiler < matlab.apps.AppBase
 
         end
 
-        % Menu selected function: LoadGNSSveloMenu
+        % Menu selected function: GNSSMenu
         function LoadGNSSveloMenuSelected(app, event)
             
-            showStatus(app, "Please, select a file *.sta. Format is lon, lat, ve, vn, vu, se, sn, su, name (and 1 line of header)")
+            showStatus(app, "Please, select a file. Std format is lon, lat, ve, vn, vu, se, sn, su, name (and 1 line of header)")
 
             ff = fixfocus;
-            [file,location] = uigetfile({'*.sta;*.sta.data'});
+            [file,location] = uigetfile({'*.sta;*.sta.data;*.dat;*.txt'});
             delete(ff);
 
             if isequal(file,0)
                 showStatus(app,"No velocity loaded")
             else
-                fullFileName = fullfile(location, file);
-                %showStatus(app,"User selected "+ string(fullFileName))
-                app.EditField.Value=fullFileName;
+                fullFileName = string(fullfile(location, file));
                 try
-                    delete(findall(app.MapAxes, 'Tag', 'VeloField'))
-                    ReadVelocityFile(app, fullFileName);
+                    %delete(findall(app.MapAxes, 'Tag', 'GNSSVeloField'))
+                    [Name,TableVelo]=ReadGNSSVelo(fullFileName);
+                    disp(Name)
+                    GNSSVelocity=GNSSVelo(Name,TableVelo,fullFileName,true);
+                    disp(app.GNSSVelocities.Fields)
+                    app.GNSSVelocities.addField(GNSSVelocity);
+                    UpdateGNSSVeloList(app)
                     PlotVelocity(app)
                     showStatus(app,"Velocity field successfully loaded")
                 catch ME
-                    % Mostra un messaggio di errore nell’interfaccia
                     showStatus(app, "Error while trying to load and plot the velocity (maybe incorrect format?). Details: " + ME.message, true);
                 end
             end
@@ -968,11 +978,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
 
         email = 'riccardo.nucci4@unibo.it';
         subject = 'Support on GNSSProfiler';
-
-        % Crea il link mailto
         mailtoLink = sprintf('mailto:%s?subject=%s', email, subject);
-
-        % Apre il client di posta
         web(mailtoLink, '-browser');
         
         end
@@ -1002,6 +1008,89 @@ classdef GNSSProfiler < matlab.apps.AppBase
             end
 
         end
+
+        % Cell edit callback: GNSSVeloList
+        function GNSSVeloListCellEdit(app, event)
+            row = event.Indices(1);
+            selected = event.NewData;
+            name=string(app.GNSSVeloList.Data(row,1).(1));
+            app.GNSSVelocities.changeSelectionByName(name,selected);
+            PlotVelocity(app)
+        end
+
+        % Menu selected function: BasemapMenu, ColorterrainMenu, NoneMenu, 
+        % ...and 1 other component
+        function BasemapMenuSelected(app, event)
+            src = event.Source;
+            switch src.Text
+                case 'Topographic'
+                    geobasemap(app.MapAxes,'topographic')
+                case 'Colorterrain'
+                    geobasemap(app.MapAxes,'colorterrain')
+                case 'Satellite'
+                    geobasemap(app.MapAxes,'satellite');
+                case 'None'
+                    geobasemap(app.MapAxes,'none');
+            end
+            
+        end
+
+        % Menu selected function: ColorGNSS
+        function ColorGNSSSelected(app, event)
+            ff = fixfocus;
+            newColor = uisetcolor;
+            newHex = string(sprintf('#%02X%02X%02X', round(newColor(1)*255), round(newColor(2)*255), round(newColor(3)*255)));
+            delete(ff);
+            disp(newHex)
+            if length(newColor) == 3
+                for i=1:numel(app.GNSSVelocities.Fields)
+                    if(app.GNSSVelocities.Fields(i).Selected)
+                        app.GNSSVelocities.Fields(i).Colors(1)=newHex;
+                        PlotVelocity(app)
+                    end
+                end
+            end
+        end
+
+        % Cell edit callback: ScalarVeloList
+        function ScalarVeloListCellEdit(app, event)
+            row = event.Indices(1);
+            selected = event.NewData;
+            name=string(app.ScalarVeloList.Data(row,1).(1));
+            app.ScalarVelocities.changeSelectionByName(name,selected);
+            PlotVelocity(app)
+        end
+
+        % Menu selected function: ColorScalarSelected
+        function ColorScalarSelectedSelected(app, event)
+            ff = fixfocus;
+            newColor = uisetcolor;
+            newHex = string(sprintf('#%02X%02X%02X', round(newColor(1)*255), round(newColor(2)*255), round(newColor(3)*255)));
+            delete(ff);
+            disp(newHex)
+            if length(newColor) == 3
+                for i=1:numel(app.ScalarVelocities.Fields)
+                    if(app.ScalarVelocities.Fields(i).Selected)
+                        app.ScalarVelocities.Fields(i).Color=newHex;
+                        PlotVelocity(app)
+                    end
+                end
+            end
+        end
+
+        % Cell edit callback: FaultList
+        function FaultListCellEdit(app, event)
+            row = event.Indices(1);
+            selected = event.NewData;
+            name=string(app.FaultList.Data(row,1).(1));
+            app.GFaultsDats.changeSelectionByName(name,selected);
+            PlotVelocity(app)
+        end
+
+        % Menu selected function: SelectedGNSSMenu
+        function SelectedGNSSMenuSelected(app, event)
+            
+        end
     end
 
     % Component initialization
@@ -1015,6 +1104,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.QuickGNSSProfilePlotterUIFigure.Color = [0.9686 0.9686 0.9686];
             app.QuickGNSSProfilePlotterUIFigure.Position = [100 100 1471 802];
             app.QuickGNSSProfilePlotterUIFigure.Name = 'Quick GNSS Profile Plotter';
+            app.QuickGNSSProfilePlotterUIFigure.Scrollable = 'on';
 
             % Create FileMenu
             app.FileMenu = uimenu(app.QuickGNSSProfilePlotterUIFigure);
@@ -1029,45 +1119,83 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.LoadMenu.MenuSelectedFcn = createCallbackFcn(app, @LoadMenuSelected, true);
             app.LoadMenu.Text = 'Load';
 
-            % Create ClearMenu
-            app.ClearMenu = uimenu(app.FaultsMenu);
-            app.ClearMenu.MenuSelectedFcn = createCallbackFcn(app, @ClearMenuSelected, true);
-            app.ClearMenu.Enable = 'off';
-            app.ClearMenu.Text = 'Clear';
-
             % Create ColorMenu
             app.ColorMenu = uimenu(app.FaultsMenu);
             app.ColorMenu.MenuSelectedFcn = createCallbackFcn(app, @ColorMenuSelected, true);
-            app.ColorMenu.Enable = 'off';
             app.ColorMenu.Text = 'Color';
 
             % Create VelocityfieldsMenu
             app.VelocityfieldsMenu = uimenu(app.FileMenu);
             app.VelocityfieldsMenu.Text = 'Velocity fields';
 
-            % Create LoadNetCDFMenu
-            app.LoadNetCDFMenu = uimenu(app.VelocityfieldsMenu);
-            app.LoadNetCDFMenu.MenuSelectedFcn = createCallbackFcn(app, @LoadNetCDFMenuSelected, true);
-            app.LoadNetCDFMenu.Text = 'Load NetCDF';
+            % Create LoadMenu_2
+            app.LoadMenu_2 = uimenu(app.VelocityfieldsMenu);
+            app.LoadMenu_2.Text = 'Load';
 
-            % Create ClearScalarFieldsMenu
-            app.ClearScalarFieldsMenu = uimenu(app.VelocityfieldsMenu);
-            app.ClearScalarFieldsMenu.MenuSelectedFcn = createCallbackFcn(app, @ClearScalarFieldsMenuSelected, true);
-            app.ClearScalarFieldsMenu.Enable = 'off';
-            app.ClearScalarFieldsMenu.Text = 'Clear Scalar Fields';
+            % Create GNSSMenu
+            app.GNSSMenu = uimenu(app.LoadMenu_2);
+            app.GNSSMenu.MenuSelectedFcn = createCallbackFcn(app, @LoadGNSSveloMenuSelected, true);
+            app.GNSSMenu.Text = 'GNSS';
 
-            % Create LoadGNSSveloMenu
-            app.LoadGNSSveloMenu = uimenu(app.VelocityfieldsMenu);
-            app.LoadGNSSveloMenu.MenuSelectedFcn = createCallbackFcn(app, @LoadGNSSveloMenuSelected, true);
-            app.LoadGNSSveloMenu.Text = 'Load GNSS velo.';
+            % Create NetCDFMenu
+            app.NetCDFMenu = uimenu(app.LoadMenu_2);
+            app.NetCDFMenu.MenuSelectedFcn = createCallbackFcn(app, @LoadNetCDFMenuSelected, true);
+            app.NetCDFMenu.Text = 'NetCDF';
 
-            % Create ClearGNSSveloMenu
-            app.ClearGNSSveloMenu = uimenu(app.VelocityfieldsMenu);
-            app.ClearGNSSveloMenu.Text = 'Clear GNSS velo.';
+            % Create ColorMenu_2
+            app.ColorMenu_2 = uimenu(app.VelocityfieldsMenu);
+            app.ColorMenu_2.Text = 'Color';
+
+            % Create ColorGNSS
+            app.ColorGNSS = uimenu(app.ColorMenu_2);
+            app.ColorGNSS.MenuSelectedFcn = createCallbackFcn(app, @ColorGNSSSelected, true);
+            app.ColorGNSS.Text = 'Selected GNSS';
+
+            % Create ColorScalarSelected
+            app.ColorScalarSelected = uimenu(app.ColorMenu_2);
+            app.ColorScalarSelected.MenuSelectedFcn = createCallbackFcn(app, @ColorScalarSelectedSelected, true);
+            app.ColorScalarSelected.Text = 'Selected NetCDF';
+
+            % Create ClearMenu_2
+            app.ClearMenu_2 = uimenu(app.VelocityfieldsMenu);
+            app.ClearMenu_2.Text = 'Clear';
+
+            % Create SelectedGNSSMenu
+            app.SelectedGNSSMenu = uimenu(app.ClearMenu_2);
+            app.SelectedGNSSMenu.MenuSelectedFcn = createCallbackFcn(app, @SelectedGNSSMenuSelected, true);
+            app.SelectedGNSSMenu.Text = 'Selected GNSS';
+
+            % Create SelectedNetCDFMenu
+            app.SelectedNetCDFMenu = uimenu(app.ClearMenu_2);
+            app.SelectedNetCDFMenu.Text = 'Selected NetCDF';
 
             % Create OptionsMenu
             app.OptionsMenu = uimenu(app.FileMenu);
             app.OptionsMenu.Text = 'Options';
+
+            % Create BasemapsneedInternetconnMenu
+            app.BasemapsneedInternetconnMenu = uimenu(app.OptionsMenu);
+            app.BasemapsneedInternetconnMenu.Text = 'Basemaps (need Internet conn.)';
+
+            % Create BasemapMenu
+            app.BasemapMenu = uimenu(app.BasemapsneedInternetconnMenu);
+            app.BasemapMenu.MenuSelectedFcn = createCallbackFcn(app, @BasemapMenuSelected, true);
+            app.BasemapMenu.Text = 'Satellite';
+
+            % Create TopographicMenu
+            app.TopographicMenu = uimenu(app.BasemapsneedInternetconnMenu);
+            app.TopographicMenu.MenuSelectedFcn = createCallbackFcn(app, @BasemapMenuSelected, true);
+            app.TopographicMenu.Text = 'Topographic';
+
+            % Create ColorterrainMenu
+            app.ColorterrainMenu = uimenu(app.BasemapsneedInternetconnMenu);
+            app.ColorterrainMenu.MenuSelectedFcn = createCallbackFcn(app, @BasemapMenuSelected, true);
+            app.ColorterrainMenu.Text = 'Colorterrain';
+
+            % Create NoneMenu
+            app.NoneMenu = uimenu(app.BasemapsneedInternetconnMenu);
+            app.NoneMenu.MenuSelectedFcn = createCallbackFcn(app, @BasemapMenuSelected, true);
+            app.NoneMenu.Text = 'None';
 
             % Create InfoMenu
             app.InfoMenu = uimenu(app.QuickGNSSProfilePlotterUIFigure);
@@ -1082,12 +1210,46 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.RiccardoNucciMenu.MenuSelectedFcn = createCallbackFcn(app, @ContactsMenuSelected, true);
             app.RiccardoNucciMenu.Text = 'Riccardo Nucci';
 
+            % Create LoadedDataPanel
+            app.LoadedDataPanel = uipanel(app.QuickGNSSProfilePlotterUIFigure);
+            app.LoadedDataPanel.BorderColor = [0 0 1];
+            app.LoadedDataPanel.HighlightColor = [0 0 1];
+            app.LoadedDataPanel.Title = 'Loaded Data';
+            app.LoadedDataPanel.Position = [398 23 302 331];
+
+            % Create GNSSVeloList
+            app.GNSSVeloList = uitable(app.LoadedDataPanel);
+            app.GNSSVeloList.ColumnName = {'GNSS v. name'; 'Selected'};
+            app.GNSSVeloList.RowName = {};
+            app.GNSSVeloList.SelectionType = 'row';
+            app.GNSSVeloList.ColumnEditable = [false true];
+            app.GNSSVeloList.CellEditCallback = createCallbackFcn(app, @GNSSVeloListCellEdit, true);
+            app.GNSSVeloList.Position = [9 223 286 76];
+
+            % Create ScalarVeloList
+            app.ScalarVeloList = uitable(app.LoadedDataPanel);
+            app.ScalarVeloList.ColumnName = {'Scalar v. name'; 'Selected'};
+            app.ScalarVeloList.RowName = {};
+            app.ScalarVeloList.SelectionType = 'row';
+            app.ScalarVeloList.ColumnEditable = [false true];
+            app.ScalarVeloList.CellEditCallback = createCallbackFcn(app, @ScalarVeloListCellEdit, true);
+            app.ScalarVeloList.Position = [9 121 286 76];
+
+            % Create FaultList
+            app.FaultList = uitable(app.LoadedDataPanel);
+            app.FaultList.ColumnName = {'Fault data name'; 'Selected'};
+            app.FaultList.RowName = {};
+            app.FaultList.SelectionType = 'row';
+            app.FaultList.ColumnEditable = [false true];
+            app.FaultList.CellEditCallback = createCallbackFcn(app, @FaultListCellEdit, true);
+            app.FaultList.Position = [9 19 286 76];
+
             % Create ProfilePanel
             app.ProfilePanel = uipanel(app.QuickGNSSProfilePlotterUIFigure);
             app.ProfilePanel.BorderColor = [0 0 1];
             app.ProfilePanel.HighlightColor = [0 0 1];
             app.ProfilePanel.Title = 'Profile';
-            app.ProfilePanel.Position = [29 317 680 331];
+            app.ProfilePanel.Position = [29 367 680 331];
 
             % Create UIAxes
             app.UIAxes = uiaxes(app.ProfilePanel);
@@ -1109,7 +1271,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.ProfileEditPanel.BorderColor = [0 0 1];
             app.ProfileEditPanel.HighlightColor = [0 0 1];
             app.ProfileEditPanel.Title = 'Profile Edit';
-            app.ProfileEditPanel.Position = [29 35 344 253];
+            app.ProfileEditPanel.Position = [29 23 344 253];
 
             % Create ProfilewidthkmEditField
             app.ProfilewidthkmEditField = uieditfield(app.ProfileEditPanel, 'numeric');
@@ -1223,83 +1385,6 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.DropDown.Position = [248 151 77 26];
             app.DropDown.Value = 'V. Para.';
 
-            % Create ProfileinfoPanel
-            app.ProfileinfoPanel = uipanel(app.QuickGNSSProfilePlotterUIFigure);
-            app.ProfileinfoPanel.BorderColor = [0 0 1];
-            app.ProfileinfoPanel.HighlightColor = [0 0 1];
-            app.ProfileinfoPanel.Title = 'Profile info';
-            app.ProfileinfoPanel.Position = [422 35 287 254];
-
-            % Create WidthkmLabel
-            app.WidthkmLabel = uilabel(app.ProfileinfoPanel);
-            app.WidthkmLabel.Position = [20 199 71 21];
-            app.WidthkmLabel.Text = 'Width (km):';
-
-            % Create LengthkmLabel
-            app.LengthkmLabel = uilabel(app.ProfileinfoPanel);
-            app.LengthkmLabel.Position = [20 164 72 22];
-            app.LengthkmLabel.Text = 'Length (km):';
-
-            % Create NumberofvelocitiesLabel
-            app.NumberofvelocitiesLabel = uilabel(app.ProfileinfoPanel);
-            app.NumberofvelocitiesLabel.Position = [20 130 117 22];
-            app.NumberofvelocitiesLabel.Text = 'Number of velocities:';
-
-            % Create EditFieldWidthInfo
-            app.EditFieldWidthInfo = uieditfield(app.ProfileinfoPanel, 'numeric');
-            app.EditFieldWidthInfo.ValueDisplayFormat = '%11.6g';
-            app.EditFieldWidthInfo.AllowEmpty = 'on';
-            app.EditFieldWidthInfo.Editable = 'off';
-            app.EditFieldWidthInfo.HorizontalAlignment = 'center';
-            app.EditFieldWidthInfo.BackgroundColor = [0.902 0.902 0.902];
-            app.EditFieldWidthInfo.Position = [163 200 69 20];
-            app.EditFieldWidthInfo.Value = [];
-
-            % Create EditFieldLengthInfo
-            app.EditFieldLengthInfo = uieditfield(app.ProfileinfoPanel, 'numeric');
-            app.EditFieldLengthInfo.ValueDisplayFormat = '%11.6g';
-            app.EditFieldLengthInfo.AllowEmpty = 'on';
-            app.EditFieldLengthInfo.Editable = 'off';
-            app.EditFieldLengthInfo.HorizontalAlignment = 'center';
-            app.EditFieldLengthInfo.BackgroundColor = [0.902 0.902 0.902];
-            app.EditFieldLengthInfo.Position = [163 165 69 20];
-            app.EditFieldLengthInfo.Value = [];
-
-            % Create EditFieldNVelInfo
-            app.EditFieldNVelInfo = uieditfield(app.ProfileinfoPanel, 'numeric');
-            app.EditFieldNVelInfo.ValueDisplayFormat = '%11.6g';
-            app.EditFieldNVelInfo.AllowEmpty = 'on';
-            app.EditFieldNVelInfo.Editable = 'off';
-            app.EditFieldNVelInfo.HorizontalAlignment = 'center';
-            app.EditFieldNVelInfo.BackgroundColor = [0.902 0.902 0.902];
-            app.EditFieldNVelInfo.Position = [163 131 69 20];
-            app.EditFieldNVelInfo.Value = [];
-
-            % Create AzimuthdegLabel
-            app.AzimuthdegLabel = uilabel(app.ProfileinfoPanel);
-            app.AzimuthdegLabel.Position = [20 94 83 22];
-            app.AzimuthdegLabel.Text = 'Azimuth (deg):';
-
-            % Create EditFieldAzimuth
-            app.EditFieldAzimuth = uieditfield(app.ProfileinfoPanel, 'numeric');
-            app.EditFieldAzimuth.ValueDisplayFormat = '%11.6g';
-            app.EditFieldAzimuth.AllowEmpty = 'on';
-            app.EditFieldAzimuth.Editable = 'off';
-            app.EditFieldAzimuth.HorizontalAlignment = 'center';
-            app.EditFieldAzimuth.BackgroundColor = [0.902 0.902 0.902];
-            app.EditFieldAzimuth.Position = [163 95 69 20];
-            app.EditFieldAzimuth.Value = [];
-
-            % Create EditField
-            app.EditField = uieditfield(app.ProfileinfoPanel, 'text');
-            app.EditField.Editable = 'off';
-            app.EditField.Position = [20 28 249 22];
-
-            % Create VelocitypathLabel
-            app.VelocitypathLabel = uilabel(app.ProfileinfoPanel);
-            app.VelocitypathLabel.Position = [20 55 76 22];
-            app.VelocitypathLabel.Text = 'Velocity path:';
-
             % Create StatusbarLabel
             app.StatusbarLabel = uilabel(app.QuickGNSSProfilePlotterUIFigure);
             app.StatusbarLabel.HorizontalAlignment = 'center';
@@ -1313,12 +1398,12 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.MapinMercatorProjectionPanel.BorderColor = [0 0 1];
             app.MapinMercatorProjectionPanel.HighlightColor = [0 0 1];
             app.MapinMercatorProjectionPanel.Title = 'Map in Mercator Projection';
-            app.MapinMercatorProjectionPanel.Position = [741 35 701 613];
+            app.MapinMercatorProjectionPanel.Position = [741 56 701 613];
 
             % Create MouseLonEditFieldLabel
             app.MouseLonEditFieldLabel = uilabel(app.QuickGNSSProfilePlotterUIFigure);
             app.MouseLonEditFieldLabel.HorizontalAlignment = 'right';
-            app.MouseLonEditFieldLabel.Position = [736 716 68 22];
+            app.MouseLonEditFieldLabel.Position = [736 740 68 22];
             app.MouseLonEditFieldLabel.Text = 'Mouse Lon:';
 
             % Create MouseLonEditField
@@ -1327,13 +1412,13 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.MouseLonEditField.AllowEmpty = 'on';
             app.MouseLonEditField.Editable = 'off';
             app.MouseLonEditField.BackgroundColor = [0.902 0.902 0.902];
-            app.MouseLonEditField.Position = [810 717 100 22];
+            app.MouseLonEditField.Position = [810 741 100 22];
             app.MouseLonEditField.Value = [];
 
             % Create MouseLatEditFieldLabel
             app.MouseLatEditFieldLabel = uilabel(app.QuickGNSSProfilePlotterUIFigure);
             app.MouseLatEditFieldLabel.HorizontalAlignment = 'right';
-            app.MouseLatEditFieldLabel.Position = [736 687 64 22];
+            app.MouseLatEditFieldLabel.Position = [736 711 64 22];
             app.MouseLatEditFieldLabel.Text = 'Mouse Lat:';
 
             % Create MouseLatEditField
@@ -1342,85 +1427,140 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.MouseLatEditField.AllowEmpty = 'on';
             app.MouseLatEditField.Editable = 'off';
             app.MouseLatEditField.BackgroundColor = [0.902 0.902 0.902];
-            app.MouseLatEditField.Position = [810 687 100 22];
+            app.MouseLatEditField.Position = [810 711 100 22];
             app.MouseLatEditField.Value = [];
 
             % Create ScalePlus
             app.ScalePlus = uibutton(app.QuickGNSSProfilePlotterUIFigure, 'push');
             app.ScalePlus.ButtonPushedFcn = createCallbackFcn(app, @ScalePlusButtonPushed, true);
-            app.ScalePlus.Position = [1207 687 35 22];
+            app.ScalePlus.Position = [1207 711 35 22];
             app.ScalePlus.Text = '+';
 
             % Create ScaleMinus
             app.ScaleMinus = uibutton(app.QuickGNSSProfilePlotterUIFigure, 'push');
             app.ScaleMinus.ButtonPushedFcn = createCallbackFcn(app, @ScaleMinusButtonPushed, true);
-            app.ScaleMinus.Position = [1164 687 35 22];
+            app.ScaleMinus.Position = [1164 711 35 22];
             app.ScaleMinus.Text = '-';
 
             % Create MouseLatEditFieldLabel_2
             app.MouseLatEditFieldLabel_2 = uilabel(app.QuickGNSSProfilePlotterUIFigure);
             app.MouseLatEditFieldLabel_2.HorizontalAlignment = 'right';
-            app.MouseLatEditFieldLabel_2.Position = [1164 718 81 22];
+            app.MouseLatEditFieldLabel_2.Position = [1163 736 81 22];
             app.MouseLatEditFieldLabel_2.Text = 'Velocity scale:';
 
             % Create EditField_3
             app.EditField_3 = uieditfield(app.QuickGNSSProfilePlotterUIFigure, 'numeric');
             app.EditField_3.ValueChangedFcn = createCallbackFcn(app, @EditField_3ValueChanged, true);
-            app.EditField_3.Position = [1060 687 58 21];
+            app.EditField_3.Position = [1060 712 58 21];
             app.EditField_3.Value = 3;
 
             % Create LegendmmyrLabel
             app.LegendmmyrLabel = uilabel(app.QuickGNSSProfilePlotterUIFigure);
-            app.LegendmmyrLabel.Position = [967 686 90 22];
+            app.LegendmmyrLabel.Position = [967 711 90 22];
             app.LegendmmyrLabel.Text = 'Legend (mm/yr)';
 
             % Create PlotLegendButton
             app.PlotLegendButton = uibutton(app.QuickGNSSProfilePlotterUIFigure, 'push');
             app.PlotLegendButton.ButtonPushedFcn = createCallbackFcn(app, @PlotLegendButtonPushed, true);
-            app.PlotLegendButton.Position = [1010 716 78 22];
+            app.PlotLegendButton.Position = [1010 740 78 22];
             app.PlotLegendButton.Text = 'Plot Legend';
 
             % Create SaveDataButton
             app.SaveDataButton = uibutton(app.QuickGNSSProfilePlotterUIFigure, 'push');
             app.SaveDataButton.ButtonPushedFcn = createCallbackFcn(app, @SaveDataButtonPushed, true);
-            app.SaveDataButton.Position = [455 679 90 22];
+            app.SaveDataButton.Position = [620 711 90 22];
             app.SaveDataButton.Text = 'Save Data';
 
             % Create Lamp
             app.Lamp = uilamp(app.QuickGNSSProfilePlotterUIFigure);
-            app.Lamp.Position = [1424 630 16 16];
+            app.Lamp.Position = [1424 651 16 16];
             app.Lamp.Color = [1 0 0];
 
             % Create SaveMapforGMTButton
             app.SaveMapforGMTButton = uibutton(app.QuickGNSSProfilePlotterUIFigure, 'push');
             app.SaveMapforGMTButton.ButtonPushedFcn = createCallbackFcn(app, @SaveMapforGMTButtonPushed, true);
-            app.SaveMapforGMTButton.Position = [1297 687 116 22];
+            app.SaveMapforGMTButton.Position = [1297 711 116 22];
             app.SaveMapforGMTButton.Text = 'Save Map for GMT';
 
             % Create PlotvelolimitsminmaxmmyrEditFieldLabel
             app.PlotvelolimitsminmaxmmyrEditFieldLabel = uilabel(app.QuickGNSSProfilePlotterUIFigure);
             app.PlotvelolimitsminmaxmmyrEditFieldLabel.HorizontalAlignment = 'right';
-            app.PlotvelolimitsminmaxmmyrEditFieldLabel.Position = [29 687 183 22];
+            app.PlotvelolimitsminmaxmmyrEditFieldLabel.Position = [29 711 183 22];
             app.PlotvelolimitsminmaxmmyrEditFieldLabel.Text = 'Plot velo-limits (min-max, mm/yr):';
 
             % Create MinYProfile
             app.MinYProfile = uieditfield(app.QuickGNSSProfilePlotterUIFigure, 'numeric');
             app.MinYProfile.ValueChangedFcn = createCallbackFcn(app, @SetMinYProfile, true);
             app.MinYProfile.HorizontalAlignment = 'left';
-            app.MinYProfile.Position = [227 687 53 22];
+            app.MinYProfile.Position = [227 711 53 22];
 
             % Create MaxYProfile
             app.MaxYProfile = uieditfield(app.QuickGNSSProfilePlotterUIFigure, 'numeric');
             app.MaxYProfile.ValueChangedFcn = createCallbackFcn(app, @SetMaxYProfile, true);
             app.MaxYProfile.HorizontalAlignment = 'left';
-            app.MaxYProfile.Position = [286 687 53 22];
+            app.MaxYProfile.Position = [286 711 53 22];
             app.MaxYProfile.Value = 1;
 
             % Create SetButton
             app.SetButton = uibutton(app.QuickGNSSProfilePlotterUIFigure, 'push');
             app.SetButton.ButtonPushedFcn = createCallbackFcn(app, @SetMinMaxProfile, true);
-            app.SetButton.Position = [346 687 53 22];
+            app.SetButton.Position = [346 711 53 22];
             app.SetButton.Text = 'Set';
+
+            % Create ProfileinfoPanel
+            app.ProfileinfoPanel = uipanel(app.QuickGNSSProfilePlotterUIFigure);
+            app.ProfileinfoPanel.BorderColor = [0 0 1];
+            app.ProfileinfoPanel.HighlightColor = [0 0 1];
+            app.ProfileinfoPanel.Title = 'Profile info';
+            app.ProfileinfoPanel.Position = [29 285 344 69];
+
+            % Create WidthkmLabel
+            app.WidthkmLabel = uilabel(app.ProfileinfoPanel);
+            app.WidthkmLabel.Position = [9 23 71 21];
+            app.WidthkmLabel.Text = 'Width (km):';
+
+            % Create LengthkmLabel
+            app.LengthkmLabel = uilabel(app.ProfileinfoPanel);
+            app.LengthkmLabel.Position = [190 23 72 22];
+            app.LengthkmLabel.Text = 'Length (km):';
+
+            % Create NumberofvelocitiesLabel
+            app.NumberofvelocitiesLabel = uilabel(app.ProfileinfoPanel);
+            app.NumberofvelocitiesLabel.Position = [9 0 117 22];
+            app.NumberofvelocitiesLabel.Text = 'Number of velocities:';
+
+            % Create AzimuthdegLabel
+            app.AzimuthdegLabel = uilabel(app.ProfileinfoPanel);
+            app.AzimuthdegLabel.Position = [189 1 83 22];
+            app.AzimuthdegLabel.Text = 'Azimuth (deg):';
+
+            % Create LabelWidth
+            app.LabelWidth = uilabel(app.ProfileinfoPanel);
+            app.LabelWidth.BackgroundColor = [1 1 1];
+            app.LabelWidth.HorizontalAlignment = 'center';
+            app.LabelWidth.Position = [80 25 104 17];
+            app.LabelWidth.Text = '';
+
+            % Create LabelLength
+            app.LabelLength = uilabel(app.ProfileinfoPanel);
+            app.LabelLength.BackgroundColor = [1 1 1];
+            app.LabelLength.HorizontalAlignment = 'center';
+            app.LabelLength.Position = [265 25 69 17];
+            app.LabelLength.Text = '';
+
+            % Create LabelNVelo
+            app.LabelNVelo = uilabel(app.ProfileinfoPanel);
+            app.LabelNVelo.BackgroundColor = [1 1 1];
+            app.LabelNVelo.HorizontalAlignment = 'center';
+            app.LabelNVelo.Position = [130 3 53 17];
+            app.LabelNVelo.Text = '';
+
+            % Create LabelAzimuth
+            app.LabelAzimuth = uilabel(app.ProfileinfoPanel);
+            app.LabelAzimuth.BackgroundColor = [1 1 1];
+            app.LabelAzimuth.HorizontalAlignment = 'center';
+            app.LabelAzimuth.Position = [272 4 62 17];
+            app.LabelAzimuth.Text = '';
 
             % Show the figure after all components are created
             app.QuickGNSSProfilePlotterUIFigure.Visible = 'on';

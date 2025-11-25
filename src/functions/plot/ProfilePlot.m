@@ -4,7 +4,8 @@ function ProfilePlot(distances, velocity_data, sigma_data, varargin)
 % Parse optional inputs
 p = inputParser;
 
-addParameter(p, 'Marker', '.b', @ischar);
+addParameter(p, 'Marker', '.', @ischar);
+addParameter(p, 'Color', 'black', @ischar);
 isAxes = @(x) isempty(x) || isa(x, 'matlab.graphics.axis.Axes');
 addParameter(p, 'Axes', [], isAxes);
 addParameter(p, 'Tag', "", @isstring)
@@ -23,11 +24,10 @@ end
 Tag=p.Results.Tag;
 
 if(Tag=="")
-    errorbar(ax,distances, velocity_data, sigma_data,p.Results.Marker,'MarkerSize',10)
-    axis(ax, 'auto');
+    errorbar(ax,distances, velocity_data, sigma_data,'Marker',p.Results.Marker,'Color',p.Results.Color,'MarkerSize',10,'LineStyle', 'none')
 else
-    errorbar(ax,distances, velocity_data, sigma_data,p.Results.Marker,'MarkerSize',10,"Tag",Tag)
-    axis(ax, 'auto');
+    errorbar(ax,distances, velocity_data, sigma_data,'Marker',p.Results.Marker,'Color',p.Results.Color,'MarkerSize',10,'LineStyle', 'none',"Tag",Tag)   
 end
+axis(ax, 'auto');
 
 end
