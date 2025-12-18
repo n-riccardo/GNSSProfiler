@@ -1,0 +1,42 @@
+function GeoPlotNames(lon, lat, name, varargin)
+%%Author: Riccardo Nucci (riccardo.nucci4@unibo.it)
+
+% Create input parser
+p = inputParser;
+% Add required arguments
+
+addRequired(p, 'lon', @isvector);
+addRequired(p, 'lat', @isvector);
+addRequired(p, 'name', @isstring);
+
+% Add optional name-value pairs
+addParameter(p, 'Color', 'blue', @ischar);
+
+isGeoAxes = @(x) isempty(x) || isa(x, 'matlab.graphics.axis.GeographicAxes');
+addParameter(p, 'Axes', [], isGeoAxes);
+addParameter(p, 'Tag', "", @(x) ischar(x) || isstring(x))
+
+% Parse inputs
+parse(p, lon, lat, name, varargin{:});
+
+% Retrieve results
+ax = p.Results.Axes;
+Color=p.Results.Color;
+Tag=p.Results.Tag;
+
+% Se non specificato, crea un nuovo geoaxes
+if isempty(ax)
+    figure;
+    ax = geoaxes;
+end
+
+for i=1:length(lon)
+    
+    t=text(ax, lat(i), lon(i), name(i), 'Color', Color,'Tag',Tag,'Interpreter', 'none',...
+        'FontSize',9,'HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
+    t.Clipping = 'on';  
+    
+end
+
+end
+

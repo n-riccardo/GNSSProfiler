@@ -15,8 +15,8 @@ classdef GNSSProfiler < matlab.apps.AppBase
         ColorGNSS                     matlab.ui.container.Menu
         ColorScalarSelected           matlab.ui.container.Menu
         ClearMenu_2                   matlab.ui.container.Menu
-        SelectedNetCDFMenu            matlab.ui.container.Menu
         SelectedGNSSMenu              matlab.ui.container.Menu
+        SelectedNetCDFMenu            matlab.ui.container.Menu
         OptionsMenu                   matlab.ui.container.Menu
         BasemapsneedInternetconnMenu  matlab.ui.container.Menu
         BasemapMenu                   matlab.ui.container.Menu
@@ -75,6 +75,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
         ProfilePanel                  matlab.ui.container.Panel
         UIAxes                        matlab.ui.control.UIAxes
         LoadedDataPanel               matlab.ui.container.Panel
+        StationNamesCheckBox          matlab.ui.control.CheckBox
         FaultList                     matlab.ui.control.Table
         ScalarVeloList                matlab.ui.control.Table
         GNSSVeloList                  matlab.ui.control.Table
@@ -157,6 +158,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
             delete(findall(app.MapAxes, 'Tag', 'GNSSVeloField'))
             delete(findall(app.MapAxes, 'Tag', 'ScalarSquare'))
             delete(findall(app.MapAxes, 'Tag', 'Faults'))
+            delete(findall(app.MapAxes, 'Tag', 'GNSSVeloNames'))
             if(~isempty(app.GNSSVelocities))
                 for i=1:numel(app.GNSSVelocities.Fields)
                     if(app.GNSSVelocities.Fields(i).Selected)
@@ -172,6 +174,20 @@ classdef GNSSProfiler < matlab.apps.AppBase
                             'Color', char(app.GNSSVelocities.Fields(i).Colors(1)),...
                             'ColorEllipse', char(app.GNSSVelocities.Fields(i).Colors(2)))
                         PlotLegend(app)
+                    end
+                end
+            end     
+            if(app.StationNamesCheckBox.Value)
+                if(~isempty(app.GNSSVelocities))
+                    for i=1:numel(app.GNSSVelocities.Fields)
+                        if(app.GNSSVelocities.Fields(i).Selected)
+                            velocityTable=app.GNSSVelocities.Fields(i).Data;
+                            lon=velocityTable.lon;
+                            lat=velocityTable.lat;
+                            name=velocityTable.name;
+                            GeoPlotNames(lon,lat,name,'Axes',app.MapAxes,'Tag',"GNSSVeloNames",...
+                            'Color', char(app.GNSSVelocities.Fields(i).Colors(1)))
+                        end
                     end
                 end
             end
@@ -197,6 +213,11 @@ classdef GNSSProfiler < matlab.apps.AppBase
                     end
                 end
             end
+        end
+
+        function PlotGNSSNames(app)
+
+            
         end
 
         function PlotProfile(app)
@@ -751,7 +772,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
 
         end
 
-        % Callback function: not associated with a component
+        % Callback function
         function ClearMenuSelected(app, event)
             h = findall(app.MapAxes, 'Tag', 'Faults');
             if ~isempty(h)
@@ -1091,6 +1112,12 @@ classdef GNSSProfiler < matlab.apps.AppBase
         function SelectedGNSSMenuSelected(app, event)
             
         end
+
+        % Value changed function: StationNamesCheckBox
+        function StationNamesCheckBoxValueChanged(app, event)
+            %value = app.StationNamesCheckBox.Value;
+            PlotVelocity(app)
+        end
     end
 
     % Component initialization
@@ -1233,7 +1260,7 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.ScalarVeloList.SelectionType = 'row';
             app.ScalarVeloList.ColumnEditable = [false true];
             app.ScalarVeloList.CellEditCallback = createCallbackFcn(app, @ScalarVeloListCellEdit, true);
-            app.ScalarVeloList.Position = [9 121 286 76];
+            app.ScalarVeloList.Position = [9 114 286 76];
 
             % Create FaultList
             app.FaultList = uitable(app.LoadedDataPanel);
@@ -1243,6 +1270,12 @@ classdef GNSSProfiler < matlab.apps.AppBase
             app.FaultList.ColumnEditable = [false true];
             app.FaultList.CellEditCallback = createCallbackFcn(app, @FaultListCellEdit, true);
             app.FaultList.Position = [9 19 286 76];
+
+            % Create StationNamesCheckBox
+            app.StationNamesCheckBox = uicheckbox(app.LoadedDataPanel);
+            app.StationNamesCheckBox.ValueChangedFcn = createCallbackFcn(app, @StationNamesCheckBoxValueChanged, true);
+            app.StationNamesCheckBox.Text = 'Station Names';
+            app.StationNamesCheckBox.Position = [9 199 100 22];
 
             % Create ProfilePanel
             app.ProfilePanel = uipanel(app.QuickGNSSProfilePlotterUIFigure);

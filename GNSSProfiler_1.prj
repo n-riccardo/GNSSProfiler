@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.apptool" plugin-version="1.0">
-  <configuration build-checksum="1442990928" file="C:\Users\rikin\Documents\OneDrive_unibo\OneDrive - Alma Mater Studiorum Università di Bologna\MatlabCodes\GNSSProfiler\GNSSProfiler_1.prj" location="C:\Users\rikin\Documents\OneDrive_unibo\OneDrive - Alma Mater Studiorum Università di Bologna\MatlabCodes\GNSSProfiler" name="GNSSProfiler_1" target="target.mlapps" target-name="Package App">
+  <configuration build-checksum="7358559" file="C:\Users\rikin\Documents\OneDrive_unibo\OneDrive - Alma Mater Studiorum Università di Bologna\MatlabCodes\GNSSProfiler\GNSSProfiler_1.prj" location="C:\Users\rikin\Documents\OneDrive_unibo\OneDrive - Alma Mater Studiorum Università di Bologna\MatlabCodes\GNSSProfiler" name="GNSSProfiler_1" target="target.mlapps" target-name="Package App">
     <param.appname>GNSSProfiler_1</param.appname>
     <param.authnamewatermark>Riccardo Nucci</param.authnamewatermark>
     <param.email>riccardo.nucci4@unibo.it</param.email>
@@ -8,7 +8,7 @@
     <param.icons />
     <param.summary>A simple tool for plotting GNSS velocity spatial profiles. It also supports continuous velocity fields in NetCDF format.</param.summary>
     <param.description />
-    <param.screenshot>C:\Users\rikin\AppData\Local\Temp\tp9aed5c49_3284_471f_a8e7_b25353949cb1.png</param.screenshot>
+    <param.screenshot>C:\Users\rikin\AppData\Local\Temp\tpf29c0afb_dab1_47a1_b81a_a5664471405d.png</param.screenshot>
     <param.version>1.0</param.version>
     <param.products.name />
     <param.products.id />
@@ -44,12 +44,15 @@
       <file>${PROJECT_ROOT}\src\functions\compute\Compute_tracks_mat.m</file>
       <file>${PROJECT_ROOT}\src\functions\compute\ComputeGNSSProfile.m</file>
       <file>${PROJECT_ROOT}\src\functions\compute\ComputeProfilesFromGrid.m</file>
+      <file>${PROJECT_ROOT}\src\functions\plot\GeoPlotNames.m</file>
       <file>${PROJECT_ROOT}\src\functions\plot\PlotProfileGrid.m</file>
       <file>${PROJECT_ROOT}\src\functions\plot\ProfilePlot.m</file>
       <file>${PROJECT_ROOT}\src\functions\plot\QuiverGeoPlotError.m</file>
       <file>${PROJECT_ROOT}\src\functions\read\ReadFaultsFile.m</file>
       <file>${PROJECT_ROOT}\src\functions\read\ReadGNSSVelo.m</file>
       <file>${PROJECT_ROOT}\src\functions\read\ReadNetCDFFile.m</file>
+      <file>${PROJECT_ROOT}\src\functions\read\ReadSegment.m</file>
+      <file>${PROJECT_ROOT}\src\functions\read\str2num_fast.m</file>
       <file>${PROJECT_ROOT}\src\functions\utils\fixfocus.m</file>
       <file>${PROJECT_ROOT}\src\functions\utils\lightenHex.m</file>
     </fileset.depfun>
